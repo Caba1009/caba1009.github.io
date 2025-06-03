@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image and Rich Text to HTML</title>
+  <style type="text/css">
+    .stacked-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 20px;
+      width: 100%;
+    }
+    .stacked-inner {
+      width: 100%;
+      max-width: 800px;
+      padding: 0 10px;
+    }
+    @media (min-width: 769px) {
+      .stacked-inner {
+        width: 60%;
+      }
+    }
+    .stacked-container img {
+      width: 100%;
+      max-width: 423px;
+      height: auto;
+    }
+    .stacked-text {
+      font-family: Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    .toolbar button, .toolbar select, .toolbar input[type="color"] {
+      margin-right: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <label for="imgUrl">Image URL:</label>
+    <input type="text" id="imgUrl" placeholder="Enter image URL here" style="width: 100%;" />
+  </div>
+  <div class="toolbar" style="margin-top: 20px;">
+    <button onclick="format('bold')"><b>B</b></button>
+    <button onclick="format('italic')"><i>I</i></button>
+    <button onclick="format('underline')"><u>U</u></button>
+    <select onchange="format('fontSize', this.value)">
+      <option value="3">Normal</option>
+      <option value="1">Small</option>
+      <option value="5">Large</option>
+      <option value="7">Huge</option>
+    </select>
+    <input type="color" onchange="format('foreColor', this.value)" />
+    <button onclick="format('insertUnorderedList')">• List</button>
+    <button onclick="format('insertOrderedList')">1. List</button>
+    <button onclick="format('justifyLeft')">Left</button>
+    <button onclick="format('justifyCenter')">Center</button>
+    <button onclick="format('justifyRight')">Right</button>
+    <button onclick="insertLink()">Link</button>
+  </div>
+  <div style="margin-top: 10px;">
+    <label for="editor">Rich Text:</label>
+    <div id="editor" contenteditable="true" style="min-height: 200px; border: 1px solid #ccc; padding: 10px;"></div>
+  </div>
+  <div style="margin-top: 20px;">
+    <button onclick="generateHTML()">Generate HTML</button>
+    <button onclick="copyHTML()">copy HTML</button>
+  </div>
+  <pre id="output" style="white-space: pre-wrap; margin-top: 20px; background: #f5f5f5; padding: 10px;"></pre>
+
+  <script>
+    function format(command, value = null) {
+      document.execCommand(command, false, value);
+    }
+
+    function insertLink() {
+      const url = prompt("Enter the URL:");
+      if (url) format("createLink", url);
+    }
+
+    function generateHTML() {
+      const imgUrl = document.getElementById('imgUrl').value;
+      const richText = document.getElementById('editor').innerHTML;
+
+      const htmlOutput = `
+<style type="text/css">
+.stacked-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 20px;
+  width: 100%;
+}
+.stacked-inner {
+  width: 100%;
+  max-width: 800px;
+  padding: 0 10px;
+}
+@media (min-width: 769px) {
+  .stacked-inner {
+    width: 60%;
+  }
+}
+.stacked-container img {
+  width: 100%;
+  max-width: 423px;
+  height: auto;
+}
+.stacked-text {
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+</style>
+<div class="stacked-container">
+  <div class="stacked-inner">
+    <img alt="User Image" src="${imgUrl}" /><br />
+    &nbsp;
+    <div class="stacked-text">${richText}</div>
+  </div>
+</div>`;
+
+      document.getElementById('output').textContent = htmlOutput;
+    }
+
+    function copyHTML() {
+      const output = document.getElementById('output');
+      navigator.clipboard.writeText(output.textContent)
+        .then(() => alert('HTML copied to clipboard!'))
+        .catch(err => alert('Failed to copy HTML: ' + err));
+    }
+  </script>
+</body>
+</html>
