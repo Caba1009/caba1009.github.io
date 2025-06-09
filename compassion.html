@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HTML Generator with Image and Text</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background-color: #f0f0f0;
+    }
+    input, select {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 10px;
+      box-sizing: border-box;
+      font-size: 1rem;
+    }
+    #toolbar button {
+      margin-right: 5px;
+      font-size: 1rem;
+      padding: 5px 10px;
+    }
+    #textContent {
+      width: 100%;
+      height: 200px;
+      margin-bottom: 10px;
+      padding: 10px;
+      box-sizing: border-box;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      background-color: white;
+      overflow-y: auto;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    .output {
+      margin-top: 20px;
+    }
+    iframe {
+      width: 100%;
+      height: 400px;
+      border: 1px solid #ccc;
+      background: white;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Responsive HTML Generator</h1>
+
+  <label for="imageUrl">Image URL:</label>
+  <input type="text" id="imageUrl" placeholder="https://example.com/image.jpg">
+
+  <label>Text to display:</label>
+  <div id="toolbar">
+    <button onclick="format('bold')"><b>B</b></button>
+    <button onclick="format('italic')"><i>I</i></button>
+    <button onclick="format('underline')"><u>U</u></button>
+    <button onclick="format('insertUnorderedList')">• List</button>
+    <button onclick="format('insertOrderedList')">1. List</button>
+    <button onclick="format('createLink', prompt('Enter URL:'))">🔗 Link</button>
+    <select onchange="format('fontSize', this.value)">
+      <option value="">Font Size</option>
+      <option value="1">Very Small</option>
+      <option value="2">Small</option>
+      <option value="3">Normal</option>
+      <option value="4">Large</option>
+      <option value="5">Very Large</option>
+      <option value="6">Huge</option>
+      <option value="7">Massive</option>
+    </select>
+    <button onclick="format('justifyLeft')">Left</button>
+    <button onclick="format('justifyCenter')">Center</button>
+    <button onclick="format('justifyRight')">Right</button>
+  </div>
+  <div id="textContent" contenteditable="true" placeholder="Enter your formatted text here..."></div>
+
+  <button onclick="generarHTML()">Generate HTML</button>
+
+  <div class="output">
+    <h2>Preview:</h2>
+    <iframe id="preview"></iframe>
+
+    <h2>Generated HTML Code:</h2>
+    <textarea id="codigoGenerado" rows="20" readonly></textarea>
+    <br>
+    <button onclick="copiarHTML()" id="btnCopiar">Copy HTML</button>
+  </div>
+
+  <script>
+    function format(command, value = null) {
+      document.execCommand(command, false, value);
+    }
+
+    function generarHTML() {
+      const imageUrl = document.getElementById('imageUrl').value.trim();
+      const text = document.getElementById('textContent').innerHTML.trim();
+
+      const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background-color: #f0f0f0;
+    }
+    .container {
+      display: flex;
+      flex-direction: row;
+      height: 100vh;
+    }
+    .text {
+      order: 1;
+      width: 50%;
+      padding: 2rem;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: left;
+    }
+    .text > div {
+      max-width: 100%;
+    }
+    .image-wrapper {
+      order: 2;
+      width: 50%;
+      padding: 2.5%;
+      box-sizing: border-box;
+      background-color: #f0f0f0;
+    }
+    .image-wrapper img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 8px;
+    }
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        height: auto;
+      }
+      .image-wrapper {
+        order: -1;
+        width: 100%;
+        padding: 2.5% 0;
+      }
+      .text {
+        width: 100%;
+        padding: 1rem;
+        order: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="text">
+      <div>${text}</div>
+    </div>
+    <div class="image-wrapper">
+      <img src="${imageUrl}" alt="Provided image">
+    </div>
+  </div>
+</body>
+</html>
+      `.trim();
+
+      const preview = document.getElementById('preview');
+      preview.srcdoc = html;
+
+      document.getElementById('codigoGenerado').value = html;
+    }
+
+    function copiarHTML() {
+      const codigo = document.getElementById('codigoGenerado');
+      codigo.select();
+      document.execCommand('copy');
+
+      const btn = document.getElementById('btnCopiar');
+      btn.textContent = "Copied!";
+      setTimeout(() => btn.textContent = "Copy HTML", 1500);
+    }
+  </script>
+
+</body>
+</html>
