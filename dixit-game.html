@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dixit - Juego de Arte</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Scoreboard */
+        .scoreboard {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .score-track {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .score-position {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .score-position.occupied {
+            border-color: #ffd700;
+            background: rgba(255, 215, 0, 0.3);
+        }
+
+        .player-scores {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .player-score {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        /* Game Area */
+        .game-area {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        /* Narrator Area */
+        .narrator-area {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .clue-display {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 15px 0;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            animation: clueAppear 0.5s ease-in-out;
+        }
+
+        @keyframes clueAppear {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .timer {
+            font-size: 18px;
+            color: #ff6b6b;
+            margin: 10px 0;
+        }
+
+        /* Cards Area */
+        .cards-area {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .section-title {
+            font-size: 20px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        /* Player Hand */
+        .player-hand {
+            margin-bottom: 30px;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            justify-items: center;
+        }
+
+        .card {
+            width: 150px;
+            height: 210px;
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .card.selected {
+            border: 3px solid #ffd700;
+            transform: translateY(-15px) scale(1.1);
+        }
+
+        .card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        .card-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+            padding: 20px 8px 8px;
+            font-size: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .artist-name {
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .year {
+            color: #ccc;
+        }
+
+        /* Submitted Cards */
+        .submitted-cards {
+            margin: 20px 0;
+        }
+
+        .submitted-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            justify-items: center;
+        }
+
+        .submitted-card {
+            width: 120px;
+            height: 168px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .submitted-card.voted {
+            border: 3px solid #4ecdc4;
+        }
+
+        /* Game Controls */
+        .game-controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .btn {
+            background: #4ecdc4;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #45b7aa;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Modal for full-screen image */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+
+        .close {
+            position: absolute;
+            top: 20px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #4ecdc4;
+        }
+
+        /* Game Setup */
+        .game-setup {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            margin-bottom: 20px;
+        }
+
+        .player-setup {
+            margin: 20px 0;
+        }
+
+        .player-setup input {
+            padding: 10px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .game-container {
+                padding: 10px;
+            }
+
+            .cards-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 10px;
+            }
+
+            .card {
+                width: 120px;
+                height: 168px;
+            }
+
+            .score-track {
+                gap: 3px;
+            }
+
+            .score-position {
+                width: 25px;
+                height: 25px;
+                font-size: 10px;
+            }
+        }
+
+        /* Game Status */
+        .game-status {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .current-phase {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .waiting-message {
+            font-size: 14px;
+            margin-top: 5px;
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Game Setup -->
+        <div id="gameSetup" class="game-setup">
+            <h1>🎨 Dixit - Juego de Arte 🎨</h1>
+            <p>Un juego de imaginación con obras de arte famosas</p>
+            
+            <div class="player-setup">
+                <h3>Configurar Jugadores (3-6)</h3>
+                <input type="text" id="playerName" placeholder="Tu nombre" maxlength="20">
+                <button class="btn" onclick="addPlayer()">Agregar Jugador</button>
+                <button class="btn" onclick="addBot()">Agregar Bot</button>
+            </div>
+            
+            <div id="playersList"></div>
+            
+            <button class="btn" id="startGameBtn" onclick="startGame()" disabled>Iniciar Juego</button>
+        </div>
+
+        <!-- Game Area -->
+        <div id="gameArea" class="game-area" style="display: none;">
+            <!-- Scoreboard -->
+            <div class="scoreboard">
+                <h3>Marcador</h3>
+                <div class="score-track" id="scoreTrack"></div>
+                <div class="player-scores" id="playerScores"></div>
+            </div>
+
+            <!-- Game Status -->
+            <div class="game-status">
+                <div class="current-phase" id="currentPhase">Esperando jugadores...</div>
+                <div class="waiting-message" id="waitingMessage"></div>
+                <div class="timer" id="timer"></div>
+            </div>
+
+            <!-- Narrator Area -->
+            <div class="narrator-area">
+                <h3 id="narratorInfo">Narrador: </h3>
+                <div class="clue-display" id="clueDisplay">Esperando pista...</div>
+                <input type="text" id="clueInput" placeholder="Escribe tu pista aquí..." maxlength="50" style="display: none; padding: 10px; border: none; border-radius: 5px; margin: 10px; width: 80%;">
+                <button class="btn" id="submitClueBtn" onclick="submitClue()" style="display: none;">Enviar Pista</button>
+            </div>
+
+            <!-- Cards Area -->
+            <div class="cards-area">
+                <!-- Player Hand -->
+                <div class="player-hand">
+                    <h3 class="section-title">Tus Cartas</h3>
+                    <div class="cards-grid" id="playerHand"></div>
+                </div>
+
+                <!-- Submitted Cards -->
+                <div class="submitted-cards" id="submittedCardsArea" style="display: none;">
+                    <h3 class="section-title">Cartas Jugadas</h3>
+                    <div class="submitted-grid" id="submittedCards"></div>
+                </div>
+
+                <!-- Game Controls -->
+                <div class="game-controls">
+                    <button class="btn" id="submitCardBtn" onclick="submitCard()" disabled>Jugar Carta</button>
+                    <button class="btn" id="voteBtn" onclick="vote()" disabled>Votar</button>
+                    <button class="btn" id="nextRoundBtn" onclick="nextRound()" style="display: none;">Siguiente Ronda</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div id="imageModal" class="modal" onclick="closeModal()">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="modalImage">
+    </div>
+
+    <script>
+        // Card Database with famous artworks, photographs, and album covers
+        const CARD_DATABASE = [
+            // Famous Paintings
+            { id: 1, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/1280px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg", artist: "Van Gogh", year: "1889" },
+            { id: 2, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Mona_Lisa.jpg/687px-Mona_Lisa.jpg", artist: "Da Vinci", year: "1503" },
+            { id: 3, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Johannes_Vermeer_-_Girl_with_a_Pearl_Earring_-_WGA24666.jpg/800px-Johannes_Vermeer_-_Girl_with_a_Pearl_Earring_-_WGA24666.jpg", artist: "Vermeer", year: "1665" },
+            { id: 4, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Michelangelo_-_Creation_of_Adam_%28cropped%29.jpg/1920px-Michelangelo_-_Creation_of_Adam_%28cropped%29.jpg", artist: "Michelangelo", year: "1512" },
+            { id: 5, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/The_Great_Wave_off_Kanagawa.jpg/1280px-The_Great_Wave_off_Kanagawa.jpg", artist: "Hokusai", year: "1831" },
+            { id: 6, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/A_Sunday_on_La_Grande_Jatte%2C_Georges_Seurat%2C_1884.jpg/1920px-A_Sunday_on_La_Grande_Jatte%2C_Georges_Seurat%2C_1884.jpg", artist: "Seurat", year: "1886" },
+            { id: 7, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/VanGogh-starry_night_ballance1.jpg/1920px-VanGogh-starry_night_ballance1.jpg", artist: "Van Gogh", year: "1888" },
+            { id: 8, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/The_Persistence_of_Memory.jpg/1920px-The_Persistence_of_Memory.jpg", artist: "Dalí", year: "1931" },
+            { id: 9, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/The_Birth_of_Venus_by_Sandro_Botticelli.jpg/1920px-The_Birth_of_Venus_by_Sandro_Botticelli.jpg", artist: "Botticelli", year: "1485" },
+            { id: 10, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/The_Son_of_Man.jpg/800px-The_Son_of_Man.jpg", artist: "Magritte", year: "1964" },
+            
+            // More Famous Paintings
+            { id: 11, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/The_Scream.jpg/800px-The_Scream.jpg", artist: "Munch", year: "1893" },
+            { id: 12, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/The_Kiss_-_Gustav_Klimt_-_Google_Cultural_Institute.jpg/800px-The_Kiss_-_Gustav_Klimt_-_Google_Cultural_Institute.jpg", artist: "Klimt", year: "1908" },
+            { id: 13, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Las_Meninas_01.jpg/800px-Las_Meninas_01.jpg", artist: "Velázquez", year: "1656" },
+            { id: 14, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Nighthawks_by_Edward_Hopper_1942.jpg/1920px-Nighthawks_by_Edward_Hopper_1942.jpg", artist: "Hopper", year: "1942" },
+            { id: 15, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Edvard_Munch%2C_1893%2C_The_Scream%2C_oil%2C_tempera_and_pastel_on_cardboard%2C_91_x_73_cm%2C_National_Gallery_of_Norway.jpg/800px-Edvard_Munch%2C_1893%2C_The_Scream%2C_oil%2C_tempera_and_pastel_on_cardboard%2C_91_x_73_cm%2C_National_Gallery_of_Norway.jpg", artist: "Munch", year: "1893" },
+            
+            // Abstract and Modern Art
+            { id: 16, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Wassily_Kandinsky%2C_1913_-_Composition_7.jpg/1920px-Wassily_Kandinsky%2C_1913_-_Composition_7.jpg", artist: "Kandinsky", year: "1913" },
+            { id: 17, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Piet_Mondriaan%2C_1930_-_Mondrian_Composition_II_in_Red%2C_Blue%2C_and_Yellow.jpg/800px-Piet_Mondriaan%2C_1930_-_Mondrian_Composition_II_in_Red%2C_Blue%2C_and_Yellow.jpg", artist: "Mondrian", year: "1930" },
+            { id: 18, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Pollock_Blue_Poles.jpg/1920px-Pollock_Blue_Poles.jpg", artist: "Pollock", year: "1952" },
+            { id: 19, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Campbell%27s_Soup_Cans_MoMA.jpg/1920px-Campbell%27s_Soup_Cans_MoMA.jpg", artist: "Warhol", year: "1962" },
+            { id: 20, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Les_Demoiselles_d%27Avignon.jpg/800px-Les_Demoiselles_d%27Avignon.jpg", artist: "Picasso", year: "1907" },
+            
+            // Famous Photographs
+            { id: 21, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Ansel_Adams_-_National_Archives_79-AAE-2.jpg/1920px-Ansel_Adams_-_National_Archives_79-AAE-2.jpg", artist: "A. Adams", year: "1942" },
+            { id: 22, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Dorothea_Lange_-_Migrant_Mother_%28cropped%29.jpg/800px-Dorothea_Lange_-_Migrant_Mother_%28cropped%29.jpg", artist: "D. Lange", year: "1936" },
+            { id: 23, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Henri_Cartier-Bresson_CHINA._Beijing._December_1948._The_last_days_of_the_Kuomintang.jpg/1920px-Henri_Cartier-Bresson_CHINA._Beijing._December_1948._The_last_days_of_the_Kuomintang.jpg", artist: "Cartier-Bresson", year: "1948" },
+            { id: 24, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Albert_Einstein_Head.jpg/800px-Albert_Einstein_Head.jpg", artist: "A. Halsman", year: "1947" },
+            { id: 25, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Buzz_salutes_the_U.S._Flag.jpg/1920px-Buzz_salutes_the_U.S._Flag.jpg", artist: "N. Armstrong", year: "1969" },
+            
+            // Album Covers (using public domain or fair use images)
+            { id: 26, url: "https://upload.wikimedia.org/wikipedia/en/3/3b/Dark_Side_of_the_Moon.png", artist: "Pink Floyd", year: "1973" },
+            { id: 27, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Sgt._Pepper%27s_Lonely_Hearts_Club_Band.jpg/1920px-Sgt._Pepper%27s_Lonely_Hearts_Club_Band.jpg", artist: "The Beatles", year: "1967" },
+            { id: 28, url: "https://upload.wikimedia.org/wikipedia/en/5/51/Nevermind_cover_art.jpg", artist: "Nirvana", year: "1991" },
+            { id: 29, url: "https://upload.wikimedia.org/wikipedia/en/d/dc/Unknown_Pleasures_Joy_Division_LP_sleeve.jpg", artist: "Joy Division", year: "1979" },
+            { id: 30, url: "https://upload.wikimedia.org/wikipedia/en/b/b9/MichaelJacksonThriller.jpg", artist: "M. Jackson", year: "1982" },
+            
+            // Additional Famous Works to reach 120+
+            { id: 31, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/American_Gothic.jpg/800px-American_Gothic.jpg", artist: "G. Wood", year: "1930" },
+            { id: 32, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Guernica_%28Picasso%29.jpg/1920px-Guernica_%28Picasso%29.jpg", artist: "Picasso", year: "1937" },
+            { id: 33, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/VanGogh-self-portrait-with-bandaged-ear.jpg/800px-VanGogh-self-portrait-with-bandaged-ear.jpg", artist: "Van Gogh", year: "1889" },
+            { id: 34, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/A_Friend_in_Need_1903_C.M.Coolidge.jpg/1920px-A_Friend_in_Need_1903_C.M.Coolidge.jpg", artist: "Coolidge", year: "1903" },
+            { id: 35, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/David_-_Napoleon_crossing_the_Alps_-_Malmaison2.jpg/800px-David_-_Napoleon_crossing_the_Alps_-_Malmaison2.jpg", artist: "J. David", year: "1801" },
+            
+            // Additional Famous Works to reach 120+
+            { id: 36, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Impression%2C_soleil_levant.jpg/1920px-Impression%2C_soleil_levant.jpg", artist: "Monet", year: "1872" },
+            { id: 37, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Renoir21.jpg/800px-Renoir21.jpg", artist: "Renoir", year: "1876" },
+            { id: 38, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Matisse-Woman-with-a-Hat.jpg/800px-Matisse-Woman-with-a-Hat.jpg", artist: "Matisse", year: "1905" },
+            { id: 39, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/The_Thinker%2C_Rodin.jpg/800px-The_Thinker%2C_Rodin.jpg", artist: "Rodin", year: "1904" },
+            { id: 40, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Frida_Kahlo_%28self_portrait%29.jpg/800px-Frida_Kahlo_%28self_portrait%29.jpg", artist: "Kahlo", year: "1940" },
+            
+            // More Impressionist and Post-Impressionist
+            { id: 41, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Claude_Monet_-_Water_Lilies_-_1919.jpg/1920px-Claude_Monet_-_Water_Lilies_-_1919.jpg", artist: "Monet", year: "1919" },
+            { id: 42, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Paul_C%C3%A9zanne_-_Mont_Sainte-Victoire_-_Google_Art_Project.jpg/1920px-Paul_C%C3%A9zanne_-_Mont_Sainte-Victoire_-_Google_Art_Project.jpg", artist: "Cézanne", year: "1904" },
+            { id: 43, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Degas_-_At_the_Races_in_the_Countryside_-_Walters_37796.jpg/1920px-Degas_-_At_the_Races_in_the_Countryside_-_Walters_37796.jpg", artist: "Degas", year: "1869" },
+            { id: 44, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Paul_Gauguin_-_Vision_After_the_Sermon_%28Jacob_Wrestling_with_the_Angel%29_-_Google_Art_Project.jpg/1920px-Paul_Gauguin_-_Vision_After_the_Sermon_%28Jacob_Wrestling_with_the_Angel%29_-_Google_Art_Project.jpg", artist: "Gauguin", year: "1888" },
+            { id: 45, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Toulouse-Lautrec_de_Henri_At_the_Moulin-Rouge_Two_Women_Waltzing_1892.jpg/1920px-Toulouse-Lautrec_de_Henri_At_the_Moulin-Rouge_Two_Women_Waltzing_1892.jpg", artist: "Toulouse-Lautrec", year: "1892" },
+            
+            // Classic Renaissance and Baroque
+            { id: 46, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Leonardo_da_Vinci_%28attrib%29-_la_Belle_Ferroniere.jpg/800px-Leonardo_da_Vinci_%28attrib%29-_la_Belle_Ferroniere.jpg", artist: "Da Vinci", year: "1495" },
+            { id: 47, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Raphael_-_Portrait_of_Baldassare_Castiglione_-_WGA18817.jpg/800px-Raphael_-_Portrait_of_Baldassare_Castiglione_-_WGA18817.jpg", artist: "Raphael", year: "1515" },
+            { id: 48, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Caravaggio_-_Narcissus_-_WGA04105.jpg/800px-Caravaggio_-_Narcissus_-_WGA04105.jpg", artist: "Caravaggio", year: "1597" },
+            { id: 49, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Rembrandt_-_The_Night_Watch_-_HD.jpg/1920px-Rembrandt_-_The_Night_Watch_-_HD.jpg", artist: "Rembrandt", year: "1642" },
+            { id: 50, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Rubens_-_Judgement_of_Paris.jpg/1920px-Rubens_-_Judgement_of_Paris.jpg", artist: "Rubens", year: "1636" },
+            
+            // Modern and Contemporary
+            { id: 51, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Rothko_Red_Blue_Yellow.jpg/800px-Rothko_Red_Blue_Yellow.jpg", artist: "Rothko", year: "1953" },
+            { id: 52, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Lichtenstein_Whaam.jpg/1920px-Lichtenstein_Whaam.jpg", artist: "Lichtenstein", year: "1963" },
+            { id: 53, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Jean-Michel_Basquiat_-_Irony_of_Negro_Policeman.jpg/800px-Jean-Michel_Basquiat_-_Irony_of_Negro_Policeman.jpg", artist: "Basquiat", year: "1981" },
+            { id: 54, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Keith_Haring_Tuttomondo_Pisa_1989.jpg/1920px-Keith_Haring_Tuttomondo_Pisa_1989.jpg", artist: "K. Haring", year: "1989" },
+            { id: 55, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Banksy_Girl_and_Heart_Balloon_%282840632113%29.jpg/800px-Banksy_Girl_and_Heart_Balloon_%282840632113%29.jpg", artist: "Banksy", year: "2002" },
+            
+            // Photography Masters
+            { id: 56, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Lange-MigrantMother02.jpg/800px-Lange-MigrantMother02.jpg", artist: "D. Lange", year: "1936" },
+            { id: 57, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Adams_The_Tetons_and_the_Snake_River.jpg/1920px-Adams_The_Tetons_and_the_Snake_River.jpg", artist: "A. Adams", year: "1942" },
+            { id: 58, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Marilyn_Monroe_winking.jpg/800px-Marilyn_Monroe_winking.jpg", artist: "B. Stern", year: "1962" },
+            { id: 59, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Che_Guevara_%28photograph%29.jpg/800px-Che_Guevara_%28photograph%29.jpg", artist: "A. Korda", year: "1960" },
+            { id: 60, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Tank_Man_%28Tiananmen_Square_protester%29.jpg/1920px-Tank_Man_%28Tiananmen_Square_protester%29.jpg", artist: "J. Widener", year: "1989" },
+            
+            // More Album Covers
+            { id: 61, url: "https://upload.wikimedia.org/wikipedia/en/4/42/Beatles_-_Abbey_Road.jpg", artist: "The Beatles", year: "1969" },
+            { id: 62, url: "https://upload.wikimedia.org/wikipedia/en/5/56/Led_Zeppelin_IV.jpg", artist: "Led Zeppelin", year: "1971" },
+            { id: 63, url: "https://upload.wikimedia.org/wikipedia/en/d/da/Velvet_Underground_and_Nico.jpg", artist: "Velvet Underground", year: "1967" },
+            { id: 64, url: "https://upload.wikimedia.org/wikipedia/en/5/50/Blondie_-_Parallel_Lines.png", artist: "Blondie", year: "1978" },
+            { id: 65, url: "https://upload.wikimedia.org/wikipedia/en/f/f6/The_Clash_-_London_Calling.jpg", artist: "The Clash", year: "1979" },
+            
+            // Additional Masterpieces
+            { id: 66, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Meisje_met_de_parel.jpg/800px-Meisje_met_de_parel.jpg", artist: "Vermeer", year: "1665" },
+            { id: 67, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Jan_van_Eyck_-_The_Arnolfini_Portrait_-_Google_Art_Project.jpg/800px-Jan_van_Eyck_-_The_Arnolfini_Portrait_-_Google_Art_Project.jpg", artist: "Van Eyck", year: "1434" },
+            { id: 68, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Caspar_David_Friedrich_-_Wanderer_above_the_sea_of_fog.jpg/800px-Caspar_David_Friedrich_-_Wanderer_above_the_sea_of_fog.jpg", artist: "C.D. Friedrich", year: "1818" },
+            { id: 69, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Edouard_Manet_-_Luncheon_on_the_Grass_-_Google_Art_Project.jpg/1920px-Edouard_Manet_-_Luncheon_on_the_Grass_-_Google_Art_Project.jpg", artist: "Manet", year: "1863" },
+            { id: 70, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Whistler_James_Symphony_in_White_no_1_%28The_White_Girl%29_1862.jpg/800px-Whistler_James_Symphony_in_White_no_1_%28The_White_Girl%29_1862.jpg", artist: "Whistler", year: "1862" },
+            
+            // More Contemporary and Pop Art
+            { id: 71, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Roy_Lichtenstein_Drowning_Girl.jpg/800px-Roy_Lichtenstein_Drowning_Girl.jpg", artist: "Lichtenstein", year: "1963" },
+            { id: 72, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/David_Hockney_A_Bigger_Splash_1967.jpg/1920px-David_Hockney_A_Bigger_Splash_1967.jpg", artist: "D. Hockney", year: "1967" },
+            { id: 73, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Cy_Twombly_Untitled_1970.jpg/1920px-Cy_Twombly_Untitled_1970.jpg", artist: "C. Twombly", year: "1970" },
+            { id: 74, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Georgia_O%27Keeffe_-_Red_Canna_-_Google_Art_Project.jpg/800px-Georgia_O%27Keeffe_-_Red_Canna_-_Google_Art_Project.jpg", artist: "G. O'Keeffe", year: "1924" },
+            { id: 75, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Grant_Wood_-_American_Gothic_-_Google_Art_Project.jpg/800px-Grant_Wood_-_American_Gothic_-_Google_Art_Project.jpg", artist: "G. Wood", year: "1930" },
+            
+            // Classical and Neoclassical
+            { id: 76, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Jean_Auguste_Dominique_Ingres%2C_Napoleon_on_his_Imperial_throne.jpg/800px-Jean_Auguste_Dominique_Ingres%2C_Napoleon_on_his_Imperial_throne.jpg", artist: "J. Ingres", year: "1806" },
+            { id: 77, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Jacques-Louis_David_-_The_Death_of_Marat.jpg/800px-Jacques-Louis_David_-_The_Death_of_Marat.jpg", artist: "J. David", year: "1793" },
+            { id: 78, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Eug%C3%A8ne_Delacroix_-_Le_28_Juillet._La_Libert%C3%A9_guidant_le_peuple.jpg/1920px-Eug%C3%A8ne_Delacroix_-_Le_28_Juillet._La_Libert%C3%A9_guidant_le_peuple.jpg", artist: "E. Delacroix", year: "1830" },
+            { id: 79, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Theodore_Gericault_-_The_Raft_of_the_Medusa_-_WGA08630.jpg/1920px-Theodore_Gericault_-_The_Raft_of_the_Medusa_-_WGA08630.jpg", artist: "T. Géricault", year: "1819" },
+            { id: 80, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Canova-Three_Graces_0_degree_view.jpg/800px-Canova-Three_Graces_0_degree_view.jpg", artist: "A. Canova", year: "1817" },
+            
+            // Expressionism and Fauvism
+            { id: 81, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Ernst_Ludwig_Kirchner_-_Street%2C_Dresden_-_Google_Art_Project.jpg/800px-Ernst_Ludwig_Kirchner_-_Street%2C_Dresden_-_Google_Art_Project.jpg", artist: "E. Kirchner", year: "1908" },
+            { id: 82, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Max_Beckmann_-_Self-Portrait_in_Tuxedo_-_Google_Art_Project.jpg/800px-Max_Beckmann_-_Self-Portrait_in_Tuxedo_-_Google_Art_Project.jpg", artist: "M. Beckmann", year: "1927" },
+            { id: 83, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Henri_Matisse_-_The_Dance_-_Google_Art_Project.jpg/1920px-Henri_Matisse_-_The_Dance_-_Google_Art_Project.jpg", artist: "H. Matisse", year: "1910" },
+            { id: 84, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Franz_Marc_-_The_Blue_Horse_-_Google_Art_Project.jpg/800px-Franz_Marc_-_The_Blue_Horse_-_Google_Art_Project.jpg", artist: "F. Marc", year: "1911" },
+            { id: 85, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Egon_Schiele_-_Self-Portrait_with_Physalis_-_Google_Art_Project.jpg/800px-Egon_Schiele_-_Self-Portrait_with_Physalis_-_Google_Art_Project.jpg", artist: "E. Schiele", year: "1912" },
+            
+            // Surrealism
+            { id: 86, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/The_Treachery_of_Images.jpg/1920px-The_Treachery_of_Images.jpg", artist: "R. Magritte", year: "1929" },
+            { id: 87, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Max_Ernst_-_Two_Children_are_Threatened_by_a_Nightingale.jpg/800px-Max_Ernst_-_Two_Children_are_Threatened_by_a_Nightingale.jpg", artist: "M. Ernst", year: "1924" },
+            { id: 88, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Joan_Mir%C3%B3%2C_1941%2C_Femme%2C_oiseau%2C_%C3%A9toile_%28Woman%2C_Bird%2C_Star%29.jpg/800px-Joan_Mir%C3%B3%2C_1941%2C_Femme%2C_oiseau%2C_%C3%A9toile_%28Woman%2C_Bird%2C_Star%29.jpg", artist: "J. Miró", year: "1941" },
+            { id: 89, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Giorgio_de_Chirico_-_The_Song_of_Love_-_Google_Art_Project.jpg/800px-Giorgio_de_Chirico_-_The_Song_of_Love_-_Google_Art_Project.jpg", artist: "G. de Chirico", year: "1914" },
+            { id: 90, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Yves_Tanguy_-_Indefinite_Divisibility_-_Google_Art_Project.jpg/1920px-Yves_Tanguy_-_Indefinite_Divisibility_-_Google_Art_Project.jpg", artist: "Y. Tanguy", year: "1942" },
+            
+            // More Classic Album Covers
+            { id: 91, url: "https://upload.wikimedia.org/wikipedia/en/8/8c/David_Bowie_-_The_Rise_and_Fall_of_Ziggy_Stardust_and_the_Spiders_from_Mars.png", artist: "D. Bowie", year: "1972" },
+            { id: 92, url: "https://upload.wikimedia.org/wikipedia/en/3/36/Ramones_-_Ramones_cover.jpg", artist: "Ramones", year: "1976" },
+            { id: 93, url: "https://upload.wikimedia.org/wikipedia/en/1/15/The_Doors_-_The_Doors.jpg", artist: "The Doors", year: "1967" },
+            { id: 94, url: "https://upload.wikimedia.org/wikipedia/en/5/55/Jimi_Hendrix_-_Are_You_Experienced.jpg", artist: "J. Hendrix", year: "1967" },
+            { id: 95, url: "https://upload.wikimedia.org/wikipedia/en/b/bb/Radiohead_-_OK_Computer_OKNOTOK_1997_2017.png", artist: "Radiohead", year: "1997" },
+            
+            // Street Art and Modern Photography
+            { id: 96, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Shepard_Fairey_Barack_Obama_Hope_poster.jpg/800px-Shepard_Fairey_Barack_Obama_Hope_poster.jpg", artist: "S. Fairey", year: "2008" },
+            { id: 97, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Vivian_Maier_self_portrait.jpg/800px-Vivian_Maier_self_portrait.jpg", artist: "V. Maier", year: "1955" },
+            { id: 98, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Robert_Mapplethorpe_self_portrait.jpg/800px-Robert_Mapplethorpe_self_portrait.jpg", artist: "R. Mapplethorpe", year: "1980" },
+            { id: 99, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Annie_Leibovitz_-_John_Lennon_and_Yoko_Ono%2C_December_8%2C_1980.jpg/800px-Annie_Leibovitz_-_John_Lennon_and_Yoko_Ono%2C_December_8%2C_1980.jpg", artist: "A. Leibovitz", year: "1980" },
+            { id: 100, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Guerrilla_Girls_broadsheet.jpg/1920px-Guerrilla_Girls_broadsheet.jpg", artist: "Guerrilla Girls", year: "1985" },
+            
+            // Asian Art and Ukiyo-e
+            { id: 101, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Hiroshige_Van_man_on_a_horse.jpg/800px-Hiroshige_Van_man_on_a_horse.jpg", artist: "Hiroshige", year: "1857" },
+            { id: 102, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Katsushika_Hokusai_-_Thirty-six_Views_of_Mount_Fuji%2C_The_Great_Wave_off_Kanagawa_-_Google_Art_Project.jpg/1920px-Katsushika_Hokusai_-_Thirty-six_Views_of_Mount_Fuji%2C_The_Great_Wave_off_Kanagawa_-_Google_Art_Project.jpg", artist: "Hokusai", year: "1831" },
+            { id: 103, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Kitagawa_Utamaro_-_Two_women_dressing_each_other%27s_hair.jpg/800px-Kitagawa_Utamaro_-_Two_women_dressing_each_other%27s_hair.jpg", artist: "Utamaro", year: "1795" },
+            { id: 104, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Sharaku_-_The_Actor_Otani_Oniji_III_as_Yakko_Edobei_-_Google_Art_Project.jpg/800px-Sharaku_-_The_Actor_Otani_Oniji_III_as_Yakko_Edobei_-_Google_Art_Project.jpg", artist: "Sharaku", year: "1794" },
+            { id: 105, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Sesshu_-_Winter_Landscape_-_Google_Art_Project.jpg/800px-Sesshu_-_Winter_Landscape_-_Google_Art_Project.jpg", artist: "Sesshū", year: "1470" },
+            
+            // Additional Contemporary and Video Game Art
+            { id: 106, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Takashi_Murakami_sculpture.jpg/800px-Takashi_Murakami_sculpture.jpg", artist: "T. Murakami", year: "2003" },
+            { id: 107, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Ai_Weiwei_Dropping_a_Han_Dynasty_Urn.jpg/800px-Ai_Weiwei_Dropping_a_Han_Dynasty_Urn.jpg", artist: "Ai Weiwei", year: "1995" },
+            { id: 108, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Damien_Hirst_-_The_Physical_Impossibility_of_Death_in_the_Mind_of_Someone_Living.jpg/1920px-Damien_Hirst_-_The_Physical_Impossibility_of_Death_in_the_Mind_of_Someone_Living.jpg", artist: "D. Hirst", year: "1991" },
+            { id: 109, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Kusama_Pumpkin_Naoshima_2006.jpg/800px-Kusama_Pumpkin_Naoshima_2006.jpg", artist: "Y. Kusama", year: "2006" },
+            { id: 110, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Jeff_Koons_Balloon_Dog.jpg/800px-Jeff_Koons_Balloon_Dog.jpg", artist: "J. Koons", year: "1994" },
+            
+            // Final additions to reach 120+
+            { id: 111, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Anselm_Kiefer_-_Margarete.jpg/1920px-Anselm_Kiefer_-_Margarete.jpg", artist: "A. Kiefer", year: "1981" },
+            { id: 112, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Gerhard_Richter_-_Betty.jpg/800px-Gerhard_Richter_-_Betty.jpg", artist: "G. Richter", year: "1988" },
+            { id: 113, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Francis_Bacon_-_Three_Studies_for_Figures_at_the_Base_of_a_Crucifixion.jpg/1920px-Francis_Bacon_-_Three_Studies_for_Figures_at_the_Base_of_a_Crucifixion.jpg", artist: "F. Bacon", year: "1944" },
+            { id: 114, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Lucian_Freud_-_Benefits_Supervisor_Sleeping.jpg/1920px-Lucian_Freud_-_Benefits_Supervisor_Sleeping.jpg", artist: "L. Freud", year: "1995" },
+            { id: 115, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Cindy_Sherman_-_Untitled_Film_Still_%2321.jpg/800px-Cindy_Sherman_-_Untitled_Film_Still_%2321.jpg", artist: "C. Sherman", year: "1978" },
+            { id: 116, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Barbara_Kruger_-_Untitled_%28Your_Body_is_a_Battleground%29.jpg/800px-Barbara_Kruger_-_Untitled_%28Your_Body_is_a_Battleground%29.jpg", artist: "B. Kruger", year: "1989" },
+            { id: 117, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Jenny_Holzer_-_Truisms.jpg/1920px-Jenny_Holzer_-_Truisms.jpg", artist: "J. Holzer", year: "1977" },
+            { id: 118, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Kara_Walker_-_A_Subtlety.jpg/1920px-Kara_Walker_-_A_Subtlety.jpg", artist: "K. Walker", year: "2014" },
+            { id: 119, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Kerry_James_Marshall_-_Past_Times.jpg/1920px-Kerry_James_Marshall_-_Past_Times.jpg", artist: "K.J. Marshall", year: "1997" },
+            { id: 120, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Maya_Lin_-_Vietnam_Veterans_Memorial.jpg/1920px-Maya_Lin_-_Vietnam_Veterans_Memorial.jpg", artist: "M. Lin", year: "1982" }
+        ];
+
+        // Game State
+        let gameState = {
+            players: [],
+            currentNarrator: 0,
+            currentPhase: 'setup', // setup, storytelling, cardSelection, voting, scoring
+            selectedCard: null,
+            submittedCards: [],
+            votes: {},
+            clue: '',
+            timer: null,
+            timeLeft: 0,
+            round: 1,
+            maxRounds: 30,
+            usedCards: []
+        };
+
+        // Initialize score track
+        function initializeScoreTrack() {
+            const scoreTrack = document.getElementById('scoreTrack');
+            scoreTrack.innerHTML = '';
+            
+            for (let i = 0; i <= 30; i++) {
+                const position = document.createElement('div');
+                position.className = 'score-position';
+                position.textContent = i;
+                position.id = `score-${i}`;
+                scoreTrack.appendChild(position);
+            }
+        }
+
+        // Player Management
+        function addPlayer() {
+            const nameInput = document.getElementById('playerName');
+            const name = nameInput.value.trim();
+            
+            if (name && gameState.players.length < 6 && !gameState.players.some(p => p.name === name)) {
+                gameState.players.push({
+                    name: name,
+                    score: 0,
+                    hand: [],
+                    isBot: false,
+                    id: Date.now()
+                });
+                nameInput.value = '';
+                updatePlayersList();
+                updateStartButton();
+            }
+        }
+
+        function addBot() {
+            const botNames = ['Artista', 'Creativo', 'Visionario', 'Imaginario', 'Genio'];
+            const availableNames = botNames.filter(name => !gameState.players.some(p => p.name === name));
+            
+            if (availableNames.length > 0 && gameState.players.length < 6) {
+                const name = availableNames[Math.floor(Math.random() * availableNames.length)];
+                gameState.players.push({
+                    name: name,
+                    score: 0,
+                    hand: [],
+                    isBot: true,
+                    id: Date.now()
+                });
+                updatePlayersList();
+                updateStartButton();
+            }
+        }
+
+        function removePlayer(playerId) {
+            gameState.players = gameState.players.filter(p => p.id !== playerId);
+            updatePlayersList();
+            updateStartButton();
+        }
+
+        function updatePlayersList() {
+            const container = document.getElementById('playersList');
+            container.innerHTML = gameState.players.map(player => 
+                `<div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.1); margin: 5px; padding: 10px; border-radius: 5px;">
+                    <span>${player.name} ${player.isBot ? '🤖' : '👤'}</span>
+                    <button onclick="removePlayer(${player.id})" style="background: #ff6b6b; border: none; color: white; padding: 5px 10px; border-radius: 3px; cursor: pointer;">X</button>
+                </div>`
+            ).join('');
+        }
+
+        function updateStartButton() {
+            const startBtn = document.getElementById('startGameBtn');
+            const canStart = gameState.players.length >= 3 && gameState.players.length <= 6;
+            startBtn.disabled = !canStart;
+            startBtn.textContent = canStart ? 'Iniciar Juego' : `Necesitas 3-6 jugadores (${gameState.players.length}/6)`;
+        }
+
+        // Game Flow
+        function startGame() {
+            document.getElementById('gameSetup').style.display = 'none';
+            document.getElementById('gameArea').style.display = 'block';
+            
+            initializeScoreTrack();
+            dealCards();
+            updateScoreboard();
+            startStorytelling();
+        }
+
+        function dealCards() {
+            // Shuffle available cards
+            const availableCards = CARD_DATABASE.filter(card => !gameState.usedCards.includes(card.id));
+            const shuffled = [...availableCards].sort(() => Math.random() - 0.5);
+            
+            // Deal 6 cards to each player
+            gameState.players.forEach(player => {
+                player.hand = shuffled.splice(0, 6);
+            });
+            
+            // Mark cards as used
+            gameState.players.forEach(player => {
+                player.hand.forEach(card => {
+                    gameState.usedCards.push(card.id);
+                });
+            });
+            
+            updatePlayerHand();
+        }
+
+        function updatePlayerHand() {
+            const container = document.getElementById('playerHand');
+            const humanPlayer = gameState.players.find(p => !p.isBot);
+            
+            if (humanPlayer) {
+                container.innerHTML = humanPlayer.hand.map(card => 
+                    `<div class="card" onclick="selectCard(${card.id})" ondblclick="openModal('${card.url}')">
+                        <img src="${card.url}" alt="${card.artist}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22210%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%23ddd%22/><text x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22>Imagen no disponible</text></svg>'">
+                        <div class="card-info">
+                            <span class="artist-name">${card.artist}</span>
+                            <span class="year">${card.year}</span>
+                        </div>
+                    </div>`
+                ).join('');
+            }
+        }
+
+        function selectCard(cardId) {
+            if (gameState.currentPhase === 'cardSelection') {
+                gameState.selectedCard = cardId;
+                
+                // Update visual selection
+                document.querySelectorAll('.card').forEach(card => card.classList.remove('selected'));
+                event.currentTarget.classList.add('selected');
+                
+                // Enable submit button
+                document.getElementById('submitCardBtn').disabled = false;
+            }
+        }
+
+        function startStorytelling() {
+            gameState.currentPhase = 'storytelling';
+            gameState.selectedCard = null;
+            gameState.submittedCards = [];
+            gameState.votes = {};
+            
+            const narrator = gameState.players[gameState.currentNarrator];
+            updateGameStatus(`${narrator.name} es el narrador`, 'Esperando pista...');
+            
+            document.getElementById('narratorInfo').textContent = `Narrador: ${narrator.name}`;
+            document.getElementById('clueDisplay').textContent = 'Esperando pista...';
+            
+            if (narrator.isBot) {
+                // Bot narrator provides a clue
+                setTimeout(() => {
+                    const clues = ['Misterioso', 'Nostálgico', 'Libertad', 'Tranquilidad', 'Caos', 'Esperanza', 'Soledad', 'Aventura'];
+                    const clue = clues[Math.floor(Math.random() * clues.length)];
+                    receiveClue(clue);
+                }, 2000);
+            } else {
+                // Human narrator inputs clue
+                document.getElementById('clueInput').style.display = 'inline-block';
+                document.getElementById('submitClueBtn').style.display = 'inline-block';
+            }
+        }
+
+        function submitClue() {
+            const clueInput = document.getElementById('clueInput');
+            const clue = clueInput.value.trim();
+            
+            if (clue) {
+                receiveClue(clue);
+                clueInput.style.display = 'none';
+                document.getElementById('submitClueBtn').style.display = 'none';
+            }
+        }
+
+        function receiveClue(clue) {
+            gameState.clue = clue;
+            const clueDisplay = document.getElementById('clueDisplay');
+            clueDisplay.textContent = `"${clue}"`;
+            clueDisplay.style.animation = 'none';
+            setTimeout(() => clueDisplay.style.animation = 'clueAppear 0.5s ease-in-out', 10);
+            
+            // Start card selection phase
+            setTimeout(() => startCardSelection(), 1500);
+        }
+
+        function startCardSelection() {
+            gameState.currentPhase = 'cardSelection';
+            updateGameStatus('Selección de Cartas', 'Elige una carta que represente la pista');
+            
+            // Narrator automatically selects a card
+            const narrator = gameState.players[gameState.currentNarrator];
+            if (narrator.isBot || !gameState.players.find(p => !p.isBot)) {
+                // Bot or if human is narrator, auto-select
+                const randomCard = narrator.hand[Math.floor(Math.random() * narrator.hand.length)];
+                gameState.submittedCards.push({
+                    playerId: narrator.id,
+                    card: randomCard,
+                    isNarrator: true
+                });
+            }
+            
+            // Start timer
+            startTimer(30, () => {
+                // Auto-submit for bots and time's up
+                gameState.players.forEach(player => {
+                    if (player.id !== gameState.players[gameState.currentNarrator].id) {
+                        if (player.isBot && !gameState.submittedCards.some(sc => sc.playerId === player.id)) {
+                            const randomCard = player.hand[Math.floor(Math.random() * player.hand.length)];
+                            gameState.submittedCards.push({
+                                playerId: player.id,
+                                card: randomCard,
+                                isNarrator: false
+                            });
+                        }
+                    }
+                });
+                
+                startVoting();
+            });
+            
+            document.getElementById('submitCardBtn').disabled = gameState.selectedCard === null;
+        }
+
+        function submitCard() {
+            if (gameState.selectedCard && gameState.currentPhase === 'cardSelection') {
+                const humanPlayer = gameState.players.find(p => !p.isBot);
+                const selectedCardData = humanPlayer.hand.find(card => card.id === gameState.selectedCard);
+                
+                gameState.submittedCards.push({
+                    playerId: humanPlayer.id,
+                    card: selectedCardData,
+                    isNarrator: gameState.currentNarrator === gameState.players.indexOf(humanPlayer)
+                });
+                
+                // Remove card from hand
+                humanPlayer.hand = humanPlayer.hand.filter(card => card.id !== gameState.selectedCard);
+                
+                // Check if all non-narrator players submitted
+                const nonNarrators = gameState.players.filter((_, index) => index !== gameState.currentNarrator);
+                const submitted = gameState.submittedCards.filter(sc => !sc.isNarrator);
+                
+                if (submitted.length === nonNarrators.length) {
+                    clearTimer();
+                    startVoting();
+                }
+                
+                document.getElementById('submitCardBtn').disabled = true;
+                updatePlayerHand();
+            }
+        }
+
+        function startVoting() {
+            gameState.currentPhase = 'voting';
+            updateGameStatus('Votación', 'Vota por la carta que crees que eligió el narrador');
+            
+            // Shuffle submitted cards for display
+            const shuffledCards = [...gameState.submittedCards].sort(() => Math.random() - 0.5);
+            
+            // Display submitted cards
+            const container = document.getElementById('submittedCards');
+            const submittedArea = document.getElementById('submittedCardsArea');
+            submittedArea.style.display = 'block';
+            
+            container.innerHTML = shuffledCards.map((submission, index) => 
+                `<div class="submitted-card" onclick="voteForCard(${submission.card.id})" ondblclick="openModal('${submission.card.url}')">
+                    <img src="${submission.card.url}" alt="${submission.card.artist}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10px;" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22168%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%23ddd%22/><text x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22>Imagen no disponible</text></svg>'">
+                    <div class="card-info">
+                        <span class="artist-name">${submission.card.artist}</span>
+                        <span class="year">${submission.card.year}</span>
+                    </div>
+                </div>`
+            ).join('');
+            
+            // Bots vote automatically
+            setTimeout(() => {
+                gameState.players.forEach(player => {
+                    if (player.isBot && gameState.players.indexOf(player) !== gameState.currentNarrator) {
+                        // Bot votes for a random card (not their own)
+                        const availableCards = shuffledCards.filter(sc => sc.playerId !== player.id);
+                        if (availableCards.length > 0) {
+                            const randomChoice = availableCards[Math.floor(Math.random() * availableCards.length)];
+                            gameState.votes[player.id] = randomChoice.card.id;
+                        }
+                    }
+                });
+                
+                // Check if voting is complete
+                checkVotingComplete();
+            }, 3000);
+            
+            // Start voting timer
+            startTimer(30, () => {
+                calculateScores();
+            });
+        }
+
+        function voteForCard(cardId) {
+            if (gameState.currentPhase === 'voting') {
+                const humanPlayer = gameState.players.find(p => !p.isBot);
+                const humanIndex = gameState.players.indexOf(humanPlayer);
+                
+                if (humanIndex !== gameState.currentNarrator) {
+                    gameState.votes[humanPlayer.id] = cardId;
+                    
+                    // Update visual feedback
+                    document.querySelectorAll('.submitted-card').forEach(card => card.classList.remove('voted'));
+                    event.currentTarget.classList.add('voted');
+                    
+                    document.getElementById('voteBtn').disabled = false;
+                    
+                    checkVotingComplete();
+                }
+            }
+        }
+
+        function vote() {
+            document.getElementById('voteBtn').disabled = true;
+            checkVotingComplete();
+        }
+
+        function checkVotingComplete() {
+            const nonNarrators = gameState.players.filter((_, index) => index !== gameState.currentNarrator);
+            const votesCount = Object.keys(gameState.votes).length;
+            
+            if (votesCount >= nonNarrators.length) {
+                clearTimer();
+                calculateScores();
+            }
+        }
+
+        function calculateScores() {
+            gameState.currentPhase = 'scoring';
+            
+            // Find narrator's card
+            const narratorCard = gameState.submittedCards.find(sc => sc.isNarrator);
+            
+            // Count votes for narrator's card
+            const narratorVotes = Object.values(gameState.votes).filter(vote => vote === narratorCard.card.id).length;
+            
+            // Score calculation (simplified Dixit rules)
+            if (narratorVotes === 0 || narratorVotes === gameState.players.length - 1) {
+                // Narrator gets 0, others get 2
+                gameState.players.forEach((player, index) => {
+                    if (index !== gameState.currentNarrator) {
+                        player.score += 2;
+                    }
+                });
+            } else {
+                // Narrator gets 3, correct guessers get 3
+                gameState.players[gameState.currentNarrator].score += 3;
+                
+                Object.entries(gameState.votes).forEach(([playerId, vote]) => {
+                    if (vote === narratorCard.card.id) {
+                        const player = gameState.players.find(p => p.id == playerId);
+                        if (player) player.score += 3;
+                    }
+                });
+            }
+            
+            // Players get 1 point for each vote their card received (except narrator's card)
+            gameState.submittedCards.forEach(submission => {
+                if (!submission.isNarrator) {
+                    const votes = Object.values(gameState.votes).filter(vote => vote === submission.card.id).length;
+                    const player = gameState.players.find(p => p.id === submission.playerId);
+                    if (player) player.score += votes;
+                }
+            });
+            
+            updateScoreboard();
+            
+            // Show results briefly
+            updateGameStatus('Resultados', `Carta del narrador: "${gameState.clue}"`);
+            
+            // Highlight narrator's card
+            setTimeout(() => {
+                document.getElementById('nextRoundBtn').style.display = 'block';
+            }, 3000);
+        }
+
+        function nextRound() {
+            // Advance narrator
+            gameState.currentNarrator = (gameState.currentNarrator + 1) % gameState.players.length;
+            gameState.round++;
+            
+            // Deal new cards to maintain 6 cards per player
+            gameState.players.forEach(player => {
+                while (player.hand.length < 6) {
+                    const availableCards = CARD_DATABASE.filter(card => !gameState.usedCards.includes(card.id));
+                    if (availableCards.length > 0) {
+                        const newCard = availableCards[Math.floor(Math.random() * availableCards.length)];
+                        player.hand.push(newCard);
+                        gameState.usedCards.push(newCard.id);
+                    }
+                }
+            });
+            
+            // Check win condition
+            const maxScore = Math.max(...gameState.players.map(p => p.score));
+            if (maxScore >= 30 || gameState.round > gameState.maxRounds) {
+                endGame();
+            } else {
+                // Reset for next round
+                document.getElementById('submittedCardsArea').style.display = 'none';
+                document.getElementById('nextRoundBtn').style.display = 'none';
+                updatePlayerHand();
+                startStorytelling();
+            }
+        }
+
+        function endGame() {
+            const winner = gameState.players.reduce((prev, current) => 
+                prev.score > current.score ? prev : current
+            );
+            
+            updateGameStatus('¡Juego Terminado!', `Ganador: ${winner.name} con ${winner.score} puntos`);
+            
+            // Hide game controls
+            document.querySelector('.game-controls').style.display = 'none';
+        }
+
+        // Timer Functions
+        function startTimer(seconds, callback) {
+            clearTimer();
+            gameState.timeLeft = seconds;
+            gameState.timer = setInterval(() => {
+                gameState.timeLeft--;
+                updateTimerDisplay();
+                
+                if (gameState.timeLeft <= 0) {
+                    clearTimer();
+                    callback();
+                }
+            }, 1000);
+            updateTimerDisplay();
+        }
+
+        function clearTimer() {
+            if (gameState.timer) {
+                clearInterval(gameState.timer);
+                gameState.timer = null;
+            }
+        }
+
+        function updateTimerDisplay() {
+            const timerElement = document.getElementById('timer');
+            if (gameState.timeLeft > 0) {
+                timerElement.textContent = `Tiempo restante: ${gameState.timeLeft}s`;
+                timerElement.style.display = 'block';
+            } else {
+                timerElement.style.display = 'none';
+            }
+        }
+
+        // UI Updates
+        function updateGameStatus(phase, message) {
+            document.getElementById('currentPhase').textContent = phase;
+            document.getElementById('waitingMessage').textContent = message;
+        }
+
+        function updateScoreboard() {
+            // Update score track
+            const scorePositions = document.querySelectorAll('.score-position');
+            scorePositions.forEach(pos => pos.classList.remove('occupied'));
+            
+            gameState.players.forEach(player => {
+                const position = document.getElementById(`score-${Math.min(player.score, 30)}`);
+                if (position) {
+                    position.classList.add('occupied');
+                    position.textContent = player.score > 30 ? '30+' : player.score;
+                }
+            });
+            
+            // Update player scores
+            const playerScores = document.getElementById('playerScores');
+            playerScores.innerHTML = gameState.players.map(player => 
+                `<div class="player-score">${player.name}: ${player.score}</div>`
+            ).join('');
+        }
+
+        // Modal Functions
+        function openModal(imageUrl) {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
+            modal.style.display = 'flex';
+            modalImg.src = imageUrl;
+        }
+
+        function closeModal() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            updateStartButton();
+            
+            // Close modal when clicking outside image
+            document.getElementById('imageModal').addEventListener('click', (e) => {
+                if (e.target === e.currentTarget) {
+                    closeModal();
+                }
+            });
+            
+            // Handle enter key for clue input
+            document.getElementById('clueInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    submitClue();
+                }
+            });
+            
+            // Handle enter key for player name input
+            document.getElementById('playerName').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    addPlayer();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

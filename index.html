@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dixit - Juego de Arte</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .main-container {
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            margin: 20px;
+        }
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .emoji {
+            font-size: 1.2em;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .description {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        .features {
+            text-align: left;
+            margin-bottom: 40px;
+        }
+
+        .features h3 {
+            margin-bottom: 15px;
+            color: #ffd700;
+        }
+
+        .features ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .features li {
+            margin-bottom: 8px;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .features li:before {
+            content: "🎨";
+            position: absolute;
+            left: 0;
+        }
+
+        .play-button {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            border-radius: 50px;
+            font-size: 1.3em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .play-button:hover {
+            background: linear-gradient(45deg, #45b7aa, #3d8b7a);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .additional-info {
+            margin-top: 30px;
+            font-size: 0.9em;
+            opacity: 0.8;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                margin: 10px;
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 2.5em;
+            }
+
+            .subtitle {
+                font-size: 1.1em;
+            }
+
+            .description {
+                font-size: 1em;
+            }
+
+            .play-button {
+                padding: 15px 30px;
+                font-size: 1.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <h1><span class="emoji">🎨</span> Dixit - Juego de Arte <span class="emoji">🎨</span></h1>
+        
+        <p class="subtitle">Un juego de imaginación con obras de arte famosas</p>
+        
+        <p class="description">
+            Descubre una versión única del clásico juego Dixit usando las obras de arte más famosas de la historia, 
+            fotografías icónicas y portadas de discos legendarios. Cada carta es una ventana a la creatividad humana.
+        </p>
+
+        <div class="features">
+            <h3>Características del Juego:</h3>
+            <ul>
+                <li>Más de 120 obras de arte, fotografías famosas y portadas de discos</li>
+                <li>Información del artista y año en cada carta</li>
+                <li>Juego multijugador en tiempo real (3-6 jugadores)</li>
+                <li>Funciona en dispositivos móviles y computadoras</li>
+                <li>Tablero de puntuación con 30 posiciones</li>
+                <li>Sistema de votación con límite de tiempo</li>
+                <li>Bots inteligentes como compañeros de juego</li>
+                <li>Vista completa de imágenes con doble clic</li>
+            </ul>
+        </div>
+
+        <a href="dixit-game.html" class="play-button">🚀 ¡Jugar Ahora!</a>
+
+        <div class="additional-info">
+            <p><strong>¿Cómo jugar?</strong></p>
+            <p>1. Agrega jugadores (humanos y bots)</p>
+            <p>2. El narrador da una pista sobre su carta</p>
+            <p>3. Los demás eligen una carta que represente la pista</p>
+            <p>4. Todos votan por la carta del narrador</p>
+            <p>5. ¡Gana puntos adivinando correctamente!</p>
+        </div>
+    </div>
+</body>
+</html>
